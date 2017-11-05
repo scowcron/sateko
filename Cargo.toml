@@ -1,0 +1,7 @@
+[package]
+name = "sateko"
+version = "0.1.0"
+authors = ["Nathan Scowcroft <ns@endrake.com>"]
+
+[dependencies]
+argparse = "0.2"
