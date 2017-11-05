@@ -1,7 +1,10 @@
 [package]
 name = "sateko"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Nathan Scowcroft <ns@endrake.com>"]
+description = "sateko brainfuck"
+license = "0BSD"
+publish = false
 
 [dependencies]
 argparse = "0.2"
