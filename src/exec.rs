@@ -51,39 +51,45 @@ impl Error for RuntimeError {
 
 type Result = result::Result<(), RuntimeError>;
 
-pub fn exec(ops: &AST, tape_len: usize) -> Result {
+pub fn exec(ops: &AST, tape_len: usize, verbose: u8) -> Result {
     let mut tape = Tape::with_size(tape_len);
-    exec_ops(&ops.0, &mut tape)
+    exec_ops(&ops.0, &mut tape, verbose)
 }
 
 
-fn exec_ops(ops: &Vec<ASTNode>, tape: &mut Tape) -> Result {
+fn exec_ops(ops: &Vec<ASTNode>, tape: &mut Tape, verb: u8) -> Result {
     for op in ops {
-        exec_op(&op, tape)?;
+        exec_op(&op, tape, verb)?;
     }
     Ok(())
 }
 
-fn exec_op(op: &ASTNode, tape: &mut Tape) -> Result {
+fn exec_op(op: &ASTNode, tape: &mut Tape, verb: u8) -> Result {
     match op.kind {
-        ASTNodeKind::Loop => exec_loop(op, tape),
-        ASTNodeKind::IncTape => inc_tape(op, tape),
-        ASTNodeKind::DecTape => dec_tape(op, tape),
-        ASTNodeKind::IncVal => inc_val(tape),
-        ASTNodeKind::DecVal => dec_val(tape),
-        ASTNodeKind::Read => read(op, tape),
-        ASTNodeKind::Write => write(op, tape),
+        ASTNodeKind::Loop => exec_loop(op, tape, verb),
+        ASTNodeKind::IncTape => inc_tape(op, tape, verb),
+        ASTNodeKind::DecTape => dec_tape(op, tape, verb),
+        ASTNodeKind::IncVal => inc_val(op, tape, verb),
+        ASTNodeKind::DecVal => dec_val(op, tape, verb),
+        ASTNodeKind::Read => read(op, tape, verb),
+        ASTNodeKind::Write => write(op, tape, verb),
     }
 }
 
-fn exec_loop(op: &ASTNode, tape: &mut Tape) -> Result {
+fn exec_loop(op: &ASTNode, tape: &mut Tape, verb: u8) -> Result {
     while tape.cells[tape.pos] != 0 {
-        exec_ops(op.ops.as_ref().unwrap(), tape)?;
+        if verb > 0 {
+            eprintln!("[{},{}] loop check cell {}: {}", op.pos.line, op.pos.pos, tape.pos, tape.cells[tape.pos]);
+        }
+        exec_ops(op.ops.as_ref().unwrap(), tape, verb)?;
+    }
+    if verb > 0 {
+        eprintln!("[{},{}] loop end cell {}", op.pos.line, op.pos.pos, tape.pos);
     }
     Ok(())
 }
 
-fn inc_tape(op: &ASTNode, tape: &mut Tape) -> Result {
+fn inc_tape(op: &ASTNode, tape: &mut Tape, _verb: u8) -> Result {
     if tape.pos == tape.cells.len() - 1 {
         Err(RuntimeError { kind: ErrorKind::OffTapeEnd(tape.cells.len()), pos: op.pos.clone() })
     } else {
@@ -92,7 +98,7 @@ fn inc_tape(op: &ASTNode, tape: &mut Tape) -> Result {
     }
 }
 
-fn dec_tape(op: &ASTNode, tape: &mut Tape) -> Result {
+fn dec_tape(op: &ASTNode, tape: &mut Tape, _verb: u8) -> Result {
     if tape.pos == 0 {
         Err(RuntimeError { kind: ErrorKind::OffTapeStart, pos: op.pos.clone() } )
     } else {
@@ -101,17 +107,23 @@ fn dec_tape(op: &ASTNode, tape: &mut Tape) -> Result {
     }
 }
 
-fn inc_val(tape: &mut Tape) -> Result {
+fn inc_val(op: &ASTNode, tape: &mut Tape, verb: u8) -> Result {
     tape.cells[tape.pos] = tape.cells[tape.pos].wrapping_add(1);
+    if verb > 0 {
+        eprintln!("[{}:{}] cell {}: {}, as char: '{}' ", op.pos.line, op.pos.pos, tape.pos, tape.cells[tape.pos], tape.cells[tape.pos] as char)
+    }
     Ok(())
 }
 
-fn dec_val(tape: &mut Tape) -> Result {
+fn dec_val(op: &ASTNode, tape: &mut Tape, verb: u8) -> Result {
     tape.cells[tape.pos] = tape.cells[tape.pos].wrapping_sub(1);
+    if verb > 0 {
+        eprintln!("[{}:{}] cell {}: {}, as char: '{}' ", op.pos.line, op.pos.pos, tape.pos, tape.cells[tape.pos], tape.cells[tape.pos] as char)
+    }
     Ok(())
 }
 
-fn read (op: &ASTNode, tape: &mut Tape) -> Result {
+fn read(op: &ASTNode, tape: &mut Tape, _verb: u8) -> Result {
     let mut buf: [u8; 1] = [0];
     match io::stdin().read(&mut buf) {
         Ok(0) => Ok(()),
@@ -120,7 +132,7 @@ fn read (op: &ASTNode, tape: &mut Tape) -> Result {
     }
 }
 
-fn write(op: &ASTNode, tape: &Tape) -> Result {
+fn write(op: &ASTNode, tape: &Tape, _verb: u8) -> Result {
     let buf = [tape.cells[tape.pos]];
     match io::stdout().write(&buf) {
         Ok(1) => Ok(()),
@@ -145,14 +157,14 @@ mod test {
     fn exec_str(s: &str) -> Result<(), RuntimeError> {
         let ts = tokenize(s);
         let ops = AST::from_tokens(&ts).unwrap();
-        exec(&ops, 30_000)
+        exec(&ops, 30_000, 0)
     }
 
     /// Utility
     fn exec_str_with_tape(s: &str, tape: &mut Tape) -> Result<(), RuntimeError> {
         let ts = tokenize(s);
         let ops = AST::from_tokens(&ts).unwrap();
-        super::exec_ops(&ops.0, tape)
+        super::exec_ops(&ops.0, tape, 0)
     }
 
     #[test]
