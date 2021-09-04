@@ -1,12 +1,10 @@
-extern crate argparse;
-
-mod token;
 mod ast;
 mod exec;
+mod token;
 
+use argparse::{ArgumentParser, IncrBy, Store};
 use std::fs::File;
 use std::io::Read;
-use argparse::{ArgumentParser, Store, IncrBy};
 
 fn main() {
     let mut fname = String::new();
@@ -19,12 +17,13 @@ fn main() {
         args.refer(&mut fname)
             .add_argument("FILE", Store, "path to script")
             .required();
-        args.refer(&mut tape_len)
-            .add_option(&["-t", "--tape-length"], Store,
-                        "number of cells on tape");
+        args.refer(&mut tape_len).add_option(
+            &["-t", "--tape-length"],
+            Store,
+            "number of cells on tape",
+        );
         args.refer(&mut verbose)
-            .add_option(&["-d", "--debug"], IncrBy(1),
-                        "enable debug output");
+            .add_option(&["-d", "--debug"], IncrBy(1), "enable debug output");
         args.parse_args_or_exit();
     }
 
@@ -50,7 +49,7 @@ fn main() {
         }
     };
 
-    if let Err(e) = exec::exec(&ops, tape_len, verbose){
+    if let Err(e) = exec::exec(&ops, tape_len, verbose) {
         println!("Runtime error: {}", e);
         return;
     }

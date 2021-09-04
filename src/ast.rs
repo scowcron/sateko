@@ -1,8 +1,8 @@
-use std::fmt;
+use crate::token::{Token, TokenKind};
 use std::error::Error;
-use token::{Token, TokenKind};
+use std::fmt;
 
-pub use token::InputPosition;
+pub use crate::token::InputPosition;
 
 #[derive(Debug, PartialEq)]
 pub struct AST(pub Vec<ASTNode>);
@@ -19,7 +19,10 @@ impl AST {
             } else if t.kind == TokenKind::StartLoop {
                 ops.push(parse_loop(&mut ts, &t.pos)?);
             } else if t.kind == TokenKind::EndLoop {
-                return Err(SyntaxError { pos: t.pos, kind: ErrorKind::UnopenedLoop });
+                return Err(SyntaxError {
+                    pos: t.pos,
+                    kind: ErrorKind::UnopenedLoop,
+                });
             }
         }
 
@@ -39,12 +42,15 @@ fn parse_loop(ts: &mut Vec<Token>, start_pos: &InputPosition) -> Result<ASTNode,
             return Ok(ASTNode {
                 kind: ASTNodeKind::Loop,
                 pos: start_pos.clone(),
-                ops: Some(ops)
+                ops: Some(ops),
             });
         }
     }
 
-    Err(SyntaxError { pos: start_pos.clone(), kind: ErrorKind::UnclosedLoop })
+    Err(SyntaxError {
+        pos: start_pos.clone(),
+        kind: ErrorKind::UnclosedLoop,
+    })
 }
 
 #[derive(Debug, PartialEq)]
@@ -90,7 +96,7 @@ impl ASTNode {
                 line: line,
                 pos: pos,
             },
-            ops: None
+            ops: None,
         }
     }
 
@@ -108,7 +114,7 @@ impl ASTNode {
 
 #[derive(Debug, PartialEq)]
 pub enum ASTNodeKind {
-    Loop, 
+    Loop,
     IncTape,
     DecTape,
     IncVal,
@@ -135,8 +141,8 @@ fn try_parse_scalar(t: &Token) -> Option<ASTNode> {
 
 #[cfg(test)]
 mod test {
+    use super::{ASTNode, ASTNodeKind, ErrorKind, InputPosition, SyntaxError, AST};
     use token::tokenize;
-    use super::{AST, ASTNode, ASTNodeKind, SyntaxError, ErrorKind, InputPosition};
 
     #[test]
     fn empty() {
@@ -178,9 +184,7 @@ mod test {
         let val = AST::from_tokens(&tokenize(raw));
         let expect = Ok(AST(vec![
             ASTNode::new_scalar(ASTNodeKind::IncVal, 1, 1),
-            ASTNode::new_loop(1, 2, vec![
-                ASTNode::new_scalar(ASTNodeKind::DecVal, 1, 3),
-            ]),
+            ASTNode::new_loop(1, 2, vec![ASTNode::new_scalar(ASTNodeKind::DecVal, 1, 3)]),
         ]));
 
         assert_eq!(val, expect);
@@ -192,13 +196,15 @@ mod test {
         let val = AST::from_tokens(&tokenize(raw));
         let expect = Ok(AST(vec![
             ASTNode::new_scalar(ASTNodeKind::IncVal, 1, 1),
-            ASTNode::new_loop(1, 2, vec![
-                ASTNode::new_scalar(ASTNodeKind::IncVal, 1, 3),
-                ASTNode::new_loop(1, 4, vec![
-                    ASTNode::new_scalar(ASTNodeKind::DecVal, 1, 5),
-                ]),
-                ASTNode::new_scalar(ASTNodeKind::DecVal, 1, 7),
-            ]),
+            ASTNode::new_loop(
+                1,
+                2,
+                vec![
+                    ASTNode::new_scalar(ASTNodeKind::IncVal, 1, 3),
+                    ASTNode::new_loop(1, 4, vec![ASTNode::new_scalar(ASTNodeKind::DecVal, 1, 5)]),
+                    ASTNode::new_scalar(ASTNodeKind::DecVal, 1, 7),
+                ],
+            ),
         ]));
 
         assert_eq!(val, expect);

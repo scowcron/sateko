@@ -57,7 +57,10 @@ pub fn tokenize(s: &str) -> Vec<Token> {
             pos += 1;
             ret.push(Token {
                 kind: TokenKind::from(c),
-                pos: InputPosition { line: line, pos: pos },
+                pos: InputPosition {
+                    line: line,
+                    pos: pos,
+                },
             });
         }
     }
@@ -67,7 +70,7 @@ pub fn tokenize(s: &str) -> Vec<Token> {
 
 #[cfg(test)]
 mod test {
-    use super::{Token, TokenKind, InputPosition};
+    use super::{InputPosition, Token, TokenKind};
 
     #[test]
     fn start_loop() {
@@ -126,15 +129,42 @@ mod test {
         let s = "[>+,\n .-<]";
         let tokens = super::tokenize(s);
         let expect: Vec<Token> = vec![
-            Token { kind: TokenKind::StartLoop, pos: InputPosition { line: 1, pos: 1 } },
-            Token { kind: TokenKind::IncTape, pos: InputPosition { line: 1, pos: 2 } },
-            Token { kind: TokenKind::IncVal, pos: InputPosition { line: 1, pos: 3 } },
-            Token { kind: TokenKind::Read, pos: InputPosition { line: 1, pos: 4 } },
-            Token { kind: TokenKind::Comment, pos: InputPosition { line: 2, pos: 1 } },
-            Token { kind: TokenKind::Write, pos: InputPosition { line: 2, pos: 2 } },
-            Token { kind: TokenKind::DecVal, pos: InputPosition { line: 2, pos: 3 } },
-            Token { kind: TokenKind::DecTape, pos: InputPosition { line: 2, pos: 4 } },
-            Token { kind: TokenKind::EndLoop, pos: InputPosition { line: 2, pos: 5 } },
+            Token {
+                kind: TokenKind::StartLoop,
+                pos: InputPosition { line: 1, pos: 1 },
+            },
+            Token {
+                kind: TokenKind::IncTape,
+                pos: InputPosition { line: 1, pos: 2 },
+            },
+            Token {
+                kind: TokenKind::IncVal,
+                pos: InputPosition { line: 1, pos: 3 },
+            },
+            Token {
+                kind: TokenKind::Read,
+                pos: InputPosition { line: 1, pos: 4 },
+            },
+            Token {
+                kind: TokenKind::Comment,
+                pos: InputPosition { line: 2, pos: 1 },
+            },
+            Token {
+                kind: TokenKind::Write,
+                pos: InputPosition { line: 2, pos: 2 },
+            },
+            Token {
+                kind: TokenKind::DecVal,
+                pos: InputPosition { line: 2, pos: 3 },
+            },
+            Token {
+                kind: TokenKind::DecTape,
+                pos: InputPosition { line: 2, pos: 4 },
+            },
+            Token {
+                kind: TokenKind::EndLoop,
+                pos: InputPosition { line: 2, pos: 5 },
+            },
         ];
         assert_eq!(tokens, expect);
     }

@@ -1,6 +1,7 @@
 [package]
 name = "sateko"
 version = "1.0.0"
+edition = "2018"
 authors = ["Nathan Scowcroft <ns@endrake.com>"]
 description = "sateko brainfuck"
 license = "0BSD"
