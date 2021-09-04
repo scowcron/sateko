@@ -61,7 +61,7 @@ pub enum ErrorKind {
 
 impl fmt::Display for SyntaxError {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "{} ({}:{})", self.description(), self.pos.line, self.pos.pos)
+        write!(f, "{} ({}:{})", self, self.pos.line, self.pos.pos)
     }
 }
 

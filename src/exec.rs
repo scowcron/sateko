@@ -35,7 +35,7 @@ pub enum ErrorKind {
 
 impl fmt::Display for RuntimeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} ({}:{})", self.description(), self.pos.line, self.pos.pos)
+        write!(f, "{} ({}:{})", self, self.pos.line, self.pos.pos)
     }
 }
 
