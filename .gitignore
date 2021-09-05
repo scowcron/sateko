@@ -1,5 +1,6 @@
 /target/
 **/*.rs.bk
+Makefile
 out.ll
 out.s
 a.out
