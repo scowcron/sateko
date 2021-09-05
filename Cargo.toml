@@ -9,3 +9,4 @@ publish = false
 
 [dependencies]
 argparse = "0.2"
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "master", features = ["llvm12-0"] }

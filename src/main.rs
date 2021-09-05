@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 mod ast;
 mod exec;
 mod token;
@@ -5,6 +7,8 @@ mod token;
 use argparse::{ArgumentParser, IncrBy, Store};
 use std::fs::File;
 use std::io::Read;
+use inkwell::context::Context;
+use crate::exec::IrBuilder;
 
 fn main() {
     let mut fname = String::new();
@@ -49,8 +53,12 @@ fn main() {
         }
     };
 
-    if let Err(e) = exec::exec(&ops, tape_len, verbose) {
-        println!("Runtime error: {}", e);
+    let context = Context::create();
+    let irbuilder = IrBuilder::create(&context, tape_len);
+    irbuilder.build_from_ast(&ops);
+    let module = irbuilder.get_module();
+    if let Err(e) = module.print_to_file("out.ll") {
+        println!("Failed to generate LLVM IR: {}", e);
         return;
-    }
+    };
 }

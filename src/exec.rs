@@ -3,6 +3,8 @@ use std::error::Error;
 use std::fmt;
 use std::io::{Read, Write};
 use std::{io, result};
+use inkwell::context::Context;
+use inkwell::module::Module;
 
 pub use crate::ast::InputPosition;
 
@@ -51,10 +53,54 @@ impl Error for RuntimeError {
 
 type Result = result::Result<(), RuntimeError>;
 
-pub fn exec(ops: &AST, tape_len: usize, verbose: u8) -> Result {
-    let mut tape = Tape::with_size(tape_len);
-    exec_ops(&ops.0, &mut tape, verbose)
+pub struct IrBuilder<'a> {
+    context: &'a Context,
+    module: Module<'a>,
+    builder: inkwell::builder::Builder<'a>,
+    tape: inkwell::values::PointerValue<'a>,
+    tape_loc: inkwell::values::PointerValue<'a>,
 }
+
+impl<'a> IrBuilder<'a> {
+    pub fn create(context: &'a Context, tape_len: u32) -> Self {
+        let module = context.create_module("sateko");
+        let builder = context.create_builder();
+
+        let i8_type = context.i8_type();
+        let i32_type = context.i32_type();
+        let fn_type = i32_type.fn_type(&[], false);
+
+        let function = module.add_function("main", fn_type, None);
+        let basic_block = context.append_basic_block(function, "entry");
+        builder.position_at_end(basic_block);
+
+        let tape = builder.build_array_alloca(i8_type, i32_type.const_int(tape_len as u64, false), "tape");
+        let tape_loc = builder.build_alloca(i32_type, "tape_ptr");
+        builder.build_store(tape_loc, i32_type.const_int(0, false));
+
+        Self {
+            context,
+            module,
+            builder,
+            tape,
+            tape_loc,
+        }
+    }
+
+    pub fn build_from_ast(&self, ast: &AST) {
+        let i32_type = self.context.i32_type();
+        let exit_code = i32_type.const_int(0, false);
+
+        // TODO write the program
+
+        self.builder.build_return(Some(&exit_code));
+    }
+
+    pub fn get_module(&self) -> &Module<'a> {
+        &self.module
+    }
+}
+
 
 fn exec_ops(ops: &Vec<ASTNode>, tape: &mut Tape, verb: u8) -> Result {
     for op in ops {
