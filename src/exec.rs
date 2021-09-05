@@ -72,9 +72,11 @@ impl<'a> IrBuilder<'a> {
         let i8_type = context.i8_type();
         let i32_type = context.i32_type();
         let main_type = i32_type.fn_type(&[], false);
-        let putc_type = i32_type.fn_type(&[inkwell::types::BasicTypeEnum::IntType(i32_type)], false);
+        let putchar_type = i32_type.fn_type(&[inkwell::types::BasicTypeEnum::IntType(i32_type)], false);
+        let getchar_type = i32_type.fn_type(&[], false);
 
-        module.add_function("putchar", putc_type, None);
+        module.add_function("putchar", putchar_type, None);
+        module.add_function("getchar", getchar_type, None);
 
         let function = module.add_function("main", main_type, None);
         let basic_block = context.append_basic_block(function, "entry");
@@ -163,31 +165,28 @@ impl<'a> IrBuilder<'a> {
     }
 
     fn read(&self, op: &ASTNode) {
-        /*
+        let i8_type = self.context.i8_type();
         let i32_type = self.context.i32_type();
         let getchar = self.module.get_function("getchar").unwrap();
 
         let i32_one = i32_type.const_int(1, true);
         let active_cell_val = self.builder.build_load(self.active_cell_ptr, "").into_int_value();
         let cell_ptr = unsafe { self.builder.build_gep(self.tape_ptr, &[active_cell_val], "") };
-        let new_val = self.builder.build_call(getchar, &[], "");
-        self.builder.build_store(cell_ptr, new_val);
-        */
-
-        // TOOD
+        let new_val = self.builder.build_call(getchar, &[], "").try_as_basic_value().left().unwrap().into_int_value();
+        let i8_new_val = self.builder.build_int_truncate(new_val, i8_type, "");
+        self.builder.build_store(cell_ptr, i8_new_val);
     }
 
     fn write(&self, op: &ASTNode) {
-        /*
         let i32_type = self.context.i32_type();
         let putchar = self.module.get_function("putchar").unwrap();
 
         let i32_one = i32_type.const_int(1, true);
         let active_cell_val = self.builder.build_load(self.active_cell_ptr, "").into_int_value();
         let cell_ptr = unsafe { self.builder.build_gep(self.tape_ptr, &[active_cell_val], "") };
-        let cur_val = self.builder.build_load(cell_ptr, "");
-        self.builder.build_call(putchar, &[cur_val], "");
-        */
+        let cur_val = self.builder.build_load(cell_ptr, "").into_int_value();
+        let i32_cur_val = self.builder.build_int_s_extend(cur_val, i32_type, "").into();
+        self.builder.build_call(putchar, &[i32_cur_val], "");
     }
 
     pub fn get_module(&self) -> &Module<'a> {
@@ -216,35 +215,6 @@ fn exec_loop(op: &ASTNode, tape: &mut Tape, verb: u8) -> Result {
     Ok(())
 }
 
-fn read(op: &ASTNode, tape: &mut Tape, _verb: u8) -> Result {
-    let mut buf: [u8; 1] = [0];
-    match io::stdin().read(&mut buf) {
-        Ok(0) => Ok(()),
-        Ok(_) => {
-            tape.cells[tape.pos] = buf[0];
-            Ok(())
-        }
-        _ => Err(RuntimeError {
-            kind: ErrorKind::IOError,
-            pos: op.pos.clone(),
-        }),
-    }
-}
-
-fn write(op: &ASTNode, tape: &Tape, _verb: u8) -> Result {
-    let buf = [tape.cells[tape.pos]];
-    match io::stdout().write(&buf) {
-        Ok(1) => Ok(()),
-        Ok(_n) => Err(RuntimeError {
-            kind: ErrorKind::IOError,
-            pos: op.pos.clone(),
-        }),
-        Err(_e) => Err(RuntimeError {
-            kind: ErrorKind::IOError,
-            pos: op.pos.clone(),
-        }),
-    }
-}
 
 #[cfg(test)]
 mod test {
