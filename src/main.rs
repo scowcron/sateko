@@ -10,10 +10,15 @@ use std::io::Read;
 use inkwell::context::Context;
 use crate::exec::IrBuilder;
 
+const LLVM_OUTPUT: &'static str = "out.ll";
+const COMPILER: &'static str = "llc";
+
+
 fn main() {
     let mut fname = String::new();
     let mut tape_len = 30_000;
     let mut verbose = 0;
+    let mut compiler = String::new();
 
     {
         let mut args = ArgumentParser::new();
@@ -28,6 +33,9 @@ fn main() {
         );
         args.refer(&mut verbose)
             .add_option(&["-d", "--debug"], IncrBy(1), "enable debug output");
+        args.refer(&mut compiler)
+            .add_option(&["-c", "--compiler"], Store, "llvm compiler path");
+
         args.parse_args_or_exit();
     }
 
@@ -57,8 +65,16 @@ fn main() {
     let irbuilder = IrBuilder::create(&context, tape_len);
     irbuilder.build_from_ast(&ops);
     let module = irbuilder.get_module();
-    if let Err(e) = module.print_to_file("out.ll") {
+    if let Err(e) = module.print_to_file(LLVM_OUTPUT) {
         println!("Failed to generate LLVM IR: {}", e);
         return;
     };
+
+    // out.ll -> out.s
+    let compiler = "llc";
+    std::process::Command::new(compiler)
+        .arg(LLVM_OUTPUT);
+
+    // out.s -> a.out
+
 }

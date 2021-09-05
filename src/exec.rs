@@ -57,33 +57,40 @@ pub struct IrBuilder<'a> {
     context: &'a Context,
     module: Module<'a>,
     builder: inkwell::builder::Builder<'a>,
-    tape: inkwell::values::PointerValue<'a>,
-    tape_loc: inkwell::values::PointerValue<'a>,
+    tape_ptr: inkwell::values::PointerValue<'a>,
+    active_cell_ptr: inkwell::values::PointerValue<'a>,
+    tape_len: u64,
 }
 
 impl<'a> IrBuilder<'a> {
     pub fn create(context: &'a Context, tape_len: u32) -> Self {
+        // FIXME should probably be name of input file
         let module = context.create_module("sateko");
         let builder = context.create_builder();
+        // TODO ?machine info
 
         let i8_type = context.i8_type();
         let i32_type = context.i32_type();
-        let fn_type = i32_type.fn_type(&[], false);
+        let main_type = i32_type.fn_type(&[], false);
+        let putc_type = i32_type.fn_type(&[inkwell::types::BasicTypeEnum::IntType(i32_type)], false);
 
-        let function = module.add_function("main", fn_type, None);
+        module.add_function("putchar", putc_type, None);
+
+        let function = module.add_function("main", main_type, None);
         let basic_block = context.append_basic_block(function, "entry");
         builder.position_at_end(basic_block);
 
-        let tape = builder.build_array_alloca(i8_type, i32_type.const_int(tape_len as u64, false), "tape");
-        let tape_loc = builder.build_alloca(i32_type, "tape_ptr");
-        builder.build_store(tape_loc, i32_type.const_int(0, false));
+        let tape_ptr = builder.build_array_alloca(i8_type, i32_type.const_int(tape_len as u64, false), "tape");
+        let active_cell_ptr = builder.build_alloca(i32_type, "active_cell");
+        builder.build_store(active_cell_ptr, i32_type.const_int(0, false));
 
         Self {
             context,
             module,
             builder,
-            tape,
-            tape_loc,
+            tape_ptr,
+            active_cell_ptr,
+            tape_len: tape_len as u64,
         }
     }
 
@@ -91,35 +98,104 @@ impl<'a> IrBuilder<'a> {
         let i32_type = self.context.i32_type();
         let exit_code = i32_type.const_int(0, false);
 
-        // TODO write the program
+        for op in &ast.0 {
+            self.exec_op(&op);
+        }
 
         self.builder.build_return(Some(&exit_code));
+    }
+
+    fn exec_op(&self, op: &ASTNode) {
+        match op.kind {
+            ASTNodeKind::Loop => self.exec_loop(op),
+            ASTNodeKind::IncTape => self.inc_tape(op),
+            ASTNodeKind::DecTape => self.dec_tape(op),
+            ASTNodeKind::IncVal => self.inc_val(op),
+            ASTNodeKind::DecVal => self.dec_val(op),
+            ASTNodeKind::Read => self.read(op),
+            ASTNodeKind::Write => self.write(op),
+        }
+    }
+
+    fn exec_loop(&self, op: &ASTNode) {
+        // TODO
+    }
+
+    fn inc_tape(&self, op: &ASTNode) {
+        let i32_type = self.context.i32_type();
+
+        let i32_one = i32_type.const_int(1, true);
+        let active_cell_val = self.builder.build_load(self.active_cell_ptr, "").into_int_value();
+        let new_cell_val = self.builder.build_int_add(i32_one, active_cell_val, "");
+        self.builder.build_store(self.active_cell_ptr, new_cell_val);
+    }
+
+    fn dec_tape(&self, op: &ASTNode) {
+        let i32_type = self.context.i32_type();
+
+        let i32_one = i32_type.const_int(1, true);
+        let active_cell_val = self.builder.build_load(self.active_cell_ptr, "").into_int_value();
+        let new_cell_val = self.builder.build_int_sub(i32_one, active_cell_val, "");
+        self.builder.build_store(self.active_cell_ptr, new_cell_val);
+    }
+
+
+    fn inc_val(&self, op: &ASTNode) {
+        let i8_type = self.context.i8_type();
+
+        let i8_one = i8_type.const_int(1, true);
+        let active_cell_val = self.builder.build_load(self.active_cell_ptr, "").into_int_value();
+        let cell_ptr = unsafe { self.builder.build_gep(self.tape_ptr, &[active_cell_val], "") };
+        let cur_val = self.builder.build_load(cell_ptr, "").into_int_value();
+        let new_val = self.builder.build_int_add(i8_one, cur_val, "");
+        self.builder.build_store(cell_ptr, new_val);
+    }
+
+    fn dec_val(&self, op: &ASTNode) {
+        let i8_type = self.context.i8_type();
+
+        let i32_one = i8_type.const_int(1, true);
+        let active_cell_val = self.builder.build_load(self.active_cell_ptr, "").into_int_value();
+        let cell_ptr = unsafe { self.builder.build_gep(self.tape_ptr, &[active_cell_val], "") };
+        let cur_val = self.builder.build_load(cell_ptr, "").into_int_value();
+        let new_val = self.builder.build_int_sub(i32_one, cur_val, "");
+        self.builder.build_store(cell_ptr, new_val);
+    }
+
+    fn read(&self, op: &ASTNode) {
+        /*
+        let i32_type = self.context.i32_type();
+        let getchar = self.module.get_function("getchar").unwrap();
+
+        let i32_one = i32_type.const_int(1, true);
+        let active_cell_val = self.builder.build_load(self.active_cell_ptr, "").into_int_value();
+        let cell_ptr = unsafe { self.builder.build_gep(self.tape_ptr, &[active_cell_val], "") };
+        let new_val = self.builder.build_call(getchar, &[], "");
+        self.builder.build_store(cell_ptr, new_val);
+        */
+
+        // TOOD
+    }
+
+    fn write(&self, op: &ASTNode) {
+        /*
+        let i32_type = self.context.i32_type();
+        let putchar = self.module.get_function("putchar").unwrap();
+
+        let i32_one = i32_type.const_int(1, true);
+        let active_cell_val = self.builder.build_load(self.active_cell_ptr, "").into_int_value();
+        let cell_ptr = unsafe { self.builder.build_gep(self.tape_ptr, &[active_cell_val], "") };
+        let cur_val = self.builder.build_load(cell_ptr, "");
+        self.builder.build_call(putchar, &[cur_val], "");
+        */
     }
 
     pub fn get_module(&self) -> &Module<'a> {
         &self.module
     }
+
 }
 
-
-fn exec_ops(ops: &Vec<ASTNode>, tape: &mut Tape, verb: u8) -> Result {
-    for op in ops {
-        exec_op(&op, tape, verb)?;
-    }
-    Ok(())
-}
-
-fn exec_op(op: &ASTNode, tape: &mut Tape, verb: u8) -> Result {
-    match op.kind {
-        ASTNodeKind::Loop => exec_loop(op, tape, verb),
-        ASTNodeKind::IncTape => inc_tape(op, tape, verb),
-        ASTNodeKind::DecTape => dec_tape(op, tape, verb),
-        ASTNodeKind::IncVal => inc_val(op, tape, verb),
-        ASTNodeKind::DecVal => dec_val(op, tape, verb),
-        ASTNodeKind::Read => read(op, tape, verb),
-        ASTNodeKind::Write => write(op, tape, verb),
-    }
-}
 
 fn exec_loop(op: &ASTNode, tape: &mut Tape, verb: u8) -> Result {
     while tape.cells[tape.pos] != 0 {
@@ -129,59 +205,13 @@ fn exec_loop(op: &ASTNode, tape: &mut Tape, verb: u8) -> Result {
                 op.pos.line, op.pos.pos, tape.pos, tape.cells[tape.pos]
             );
         }
-        exec_ops(op.ops.as_ref().unwrap(), tape, verb)?;
+        //exec_ops(op.ops.as_ref().unwrap(), tape, verb)?;
     }
     if verb > 0 {
         eprintln!(
             "[{},{}] loop end cell {}",
             op.pos.line, op.pos.pos, tape.pos
         );
-    }
-    Ok(())
-}
-
-fn inc_tape(op: &ASTNode, tape: &mut Tape, _verb: u8) -> Result {
-    if tape.pos == tape.cells.len() - 1 {
-        Err(RuntimeError {
-            kind: ErrorKind::OffTapeEnd(tape.cells.len()),
-            pos: op.pos.clone(),
-        })
-    } else {
-        tape.pos += 1;
-        Ok(())
-    }
-}
-
-fn dec_tape(op: &ASTNode, tape: &mut Tape, _verb: u8) -> Result {
-    if tape.pos == 0 {
-        Err(RuntimeError {
-            kind: ErrorKind::OffTapeStart,
-            pos: op.pos.clone(),
-        })
-    } else {
-        tape.pos -= 1;
-        Ok(())
-    }
-}
-
-fn inc_val(op: &ASTNode, tape: &mut Tape, verb: u8) -> Result {
-    tape.cells[tape.pos] = tape.cells[tape.pos].wrapping_add(1);
-    if verb > 0 {
-        eprintln!(
-            "[{}:{}] cell {}: {}, as char: '{}' ",
-            op.pos.line, op.pos.pos, tape.pos, tape.cells[tape.pos], tape.cells[tape.pos] as char
-        )
-    }
-    Ok(())
-}
-
-fn dec_val(op: &ASTNode, tape: &mut Tape, verb: u8) -> Result {
-    tape.cells[tape.pos] = tape.cells[tape.pos].wrapping_sub(1);
-    if verb > 0 {
-        eprintln!(
-            "[{}:{}] cell {}: {}, as char: '{}' ",
-            op.pos.line, op.pos.pos, tape.pos, tape.cells[tape.pos], tape.cells[tape.pos] as char
-        )
     }
     Ok(())
 }
