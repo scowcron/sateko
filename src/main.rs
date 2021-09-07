@@ -62,9 +62,11 @@ fn main() {
     };
 
     let context = Context::create();
-    let irbuilder = IrBuilder::create(&context, tape_len);
+    let mut irbuilder = IrBuilder::create(&context, tape_len);
     irbuilder.build_from_ast(&ops);
     let module = irbuilder.get_module();
+    module.set_name(&fname);
+    module.set_source_file_name(&fname);
     if let Err(e) = module.print_to_file(LLVM_OUTPUT) {
         println!("Failed to generate LLVM IR: {}", e);
         return;
