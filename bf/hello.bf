@@ -1,6 +1,6 @@
-[ source: https://en.wikipedia.org/wiki/Brainfuck
+[ edited from source: https://en.wikipedia.org/wiki/Brainfuck
 
-  This program prints "Hello World!" and a newline to the screen, its
+  This program prints "Hello Sateko!" and a newline to the screen, its
   length is 106 active command characters. [It is not the shortest.]
 
   This loop is an "initial comment loop", a simple way of adding a comment
@@ -38,8 +38,10 @@ Pointer :   ^
 >---.                   Subtract 3 from Cell #3 to get 101 which is 'e'
 +++++++..+++.           Likewise for 'llo' from Cell #3
 >>.                     Cell #5 is 32 for the space
-<-.                     Subtract 1 from Cell #4 for 87 to give a 'W'
-<.                      Cell #3 was set to 'o' from the end of 'Hello'
-+++.------.--------.    Cell #3 for 'rl' and 'd'
+<-----.                 Cell #4 minus 5 yields 'S'
+<--------------.        Subtracting 14 gives us 'a'
++++++++++++++++++++.    Adding 19 to Cell #3 which is 't'
+---------------.        minus 15 to Cell #3 is 'e'
+++++++.++++.            'ko'
 >>+.                    Add 1 to Cell #5 gives us an exclamation point
 >++.                    And finally a newline from Cell #6
