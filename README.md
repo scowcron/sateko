@@ -1,6 +1,16 @@
 # sateko brainfuck
 
-sateko is a simple brainfuck interpreter.
+sateko is a toy brainfuck compiler.
+
+## Compiling
+
+sateko compiles a bf script (e.g. hello.bf) into LLVM IR. The typical process of building an executable
+depends on your development environment. Building a typical bf program might look something like this:
+
+    $ sateko hello.bf
+    $ llc out.ll
+    $ gcc out.s
+    $ ./a.out
 
 ## About Brainfuck
 
@@ -46,7 +56,7 @@ Some ideas:
 
 ## License
 
-sateko is 0bsd licensed. Do with it as you please.
+sateko uses the 3-clause BSD license. See LICENSE file.
 
 
 [Brainfuck]: http://www.muppetlabs.com/~breadbox/bf/
