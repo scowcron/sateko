@@ -4,6 +4,12 @@ sateko is a toy brainfuck compiler.
 
 NOTE: this requires LLVM 12 installed on your machine.
 
+## Installation
+
+Install with:
+
+    $ cargo install sateko
+
 ## Compiling
 
 sateko compiles a bf script (e.g. hello.bf) into LLVM IR. The typical process of building an executable
