@@ -6,7 +6,6 @@ authors = ["Nathan Scowcroft <ns@endrake.com>"]
 description = "A toy brainfuck compiler"
 homepage = "https://github.com/scowcron/sateko"
 license = "BSD-3-Clause"
-license-file = "LICENSE"
 repository = "https://github.com/scowcron/sateko"
 readme = "README.md"
 keywords = ["brainfuck", "compiler", "toy"]
