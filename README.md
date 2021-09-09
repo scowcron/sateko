@@ -42,14 +42,16 @@ between \[ and \] will be executed.
 This is a toy project. I wanted to play with Rust and do a bit of parsing. The brainfuck language is *extremely* simple to
 parse, and the number of concerns in the execution envronment is very small.
 
-Additinally, there's a lot of room for experimentation.
+And, there's a lot of room for experimentation.
 
 Some ideas:
  * replace tokenizing and parsing with a parser-combinator
  * write a proper parser that will handle more than single character commands
  * JIT brainfuck
  * REPL
- * compile to assembly or bytecode
+ * compile to assembly or bytecode   // DONE
+ * optimization pass
+ * build all the way to executable
  * language extension:
    * add "functions"
    * multi-file programs
