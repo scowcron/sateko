@@ -142,7 +142,7 @@ fn try_parse_scalar(t: &Token) -> Option<ASTNode> {
 #[cfg(test)]
 mod test {
     use super::{ASTNode, ASTNodeKind, ErrorKind, InputPosition, SyntaxError, AST};
-    use token::tokenize;
+    use crate::token::tokenize;
 
     #[test]
     fn empty() {
