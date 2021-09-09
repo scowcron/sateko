@@ -1,4 +1,5 @@
 [![Rust](https://github.com/scowcron/sateko/actions/workflows/rust.yml/badge.svg)](https://github.com/scowcron/sateko/actions/workflows/rust.yml)
+[![Rust](https://img.shields.io/crates/v/sateko.svg)](https://crates.io/crates/sateko)
 
 # sateko brainfuck
 
