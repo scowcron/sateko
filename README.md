@@ -1,3 +1,5 @@
+[![Rust](https://github.com/scowcron/sateko/actions/workflows/rust.yml/badge.svg)](https://github.com/scowcron/sateko/actions/workflows/rust.yml)
+
 # sateko brainfuck
 
 sateko is a toy brainfuck compiler.
