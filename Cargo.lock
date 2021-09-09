@@ -43,8 +43,9 @@ checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
 name = "inkwell"
-version = "0.1.0"
-source = "git+https://github.com/TheDan64/inkwell?branch=master#995152faf40f85a06467ddfdc873c0fcad302aab"
+version = "0.1.0-beta.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f3b605692df6dfbbaf596f7f15b7e3a629a32bd32e5dc28400fcb8bd07e6ad8"
 dependencies = [
  "either",
  "inkwell_internals",
@@ -57,8 +58,9 @@ dependencies = [
 
 [[package]]
 name = "inkwell_internals"
-version = "0.3.0"
-source = "git+https://github.com/TheDan64/inkwell?branch=master#995152faf40f85a06467ddfdc873c0fcad302aab"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "185190cd08999fdedf30920ba83ab9c05c786c27b657865422caf51a11e31a8a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -200,7 +202,7 @@ checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
 
 [[package]]
 name = "sateko"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
  "argparse",
  "inkwell",
