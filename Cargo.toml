@@ -1,10 +1,16 @@
 [package]
 name = "sateko"
-version = "1.0.0"
+version = "0.1.0"
 edition = "2018"
 authors = ["Nathan Scowcroft <ns@endrake.com>"]
-description = "sateko brainfuck"
-license = "0BSD"
+description = "A toy brainfuck compiler"
+homepage = "https://github.com/scowcron/sateko"
+license = "BSD-3-Clause"
+license-file = "LICENSE"
+repository = "https://github.com/scowcron/sateko"
+readme = "README.md"
+keywords = ["brainfuck", "compiler", "toy"]
+categories = ["compilers"]
 publish = false
 
 [dependencies]
